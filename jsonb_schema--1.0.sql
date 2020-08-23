@@ -3,19 +3,19 @@
 -- complain if script is sourced in psql, rather than via CREATE EXTENSION
 \echo Use "create extension jsonb_schema" to load this file. \quit
 
-create table jsonb_schemes(id serial, schema bytea);
+create table jsonb_schemes(id serial, schema text collate "C");
 -- create unique index on jsonb_schemes using hash(schema);
 create unique index on jsonb_schemes(schema) include(id);
 create unique index on jsonb_schemes(id) include(schema);
 
-create function jsonb_extract_schema(obj jsonb, out schema bytea, out data bytea) as 'MODULE_PATHNAME' language C strict;
-create function jsonb_add_schema(schema bytea, data bytea) returns jsonb as 'MODULE_PATHNAME' language C strict;
+create function jsonb_extract_schema(obj jsonb, out schema text, out data text) as 'MODULE_PATHNAME' language C strict;
+create function jsonb_add_schema(schema text, data text) returns jsonb as 'MODULE_PATHNAME' language C strict;
 
 
 create function jsonb_pack(obj jsonb) returns jsonb as $$
 declare
-	obj_schema bytea;
-	obj_data bytea;
+	obj_schema text;
+	obj_data text;
 	schema_id integer;
 begin
 	select * from  jsonb_extract_schema(obj) into obj_schema,obj_data;
@@ -25,6 +25,6 @@ end;
 $$ language plpgsql strict;
 
 create function jsonb_unpack(obj jsonb) returns jsonb as $$
-	select jsonb_add_schema(schema,(obj->>1)::bytea) from jsonb_schemes where id=(obj->>0)::integer;
+	select jsonb_add_schema(schema,obj->>1) from jsonb_schemes where id=(obj->>0)::integer;
 $$ language sql strict;
 

@@ -297,6 +297,7 @@ jsonb_add_schema_recursive(JsonbParseState **state, JsonbIteratorToken token, ch
 	  default:
 		Assert(false);
 	}
+	return NULL;
 }
 
 /*
