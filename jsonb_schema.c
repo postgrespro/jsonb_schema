@@ -15,14 +15,14 @@ PG_FUNCTION_INFO_V1(jsonb_extract_schema);
 PG_FUNCTION_INFO_V1(jsonb_add_schema);
 
 typedef  enum {
-	jsbEnd,   /* end of object/array indicator */
-	jsbTuple, /* fixed length array of elements of different types */
-	jsbArray, /* varying length array of elements of the same type */
-	jsbObject,
 	jsbNull,
+	jsbObject,
 	jsbString,
 	jsbNumeric,
-	jsbBool
+	jsbBool,
+	jsbTuple, /* fixed length array of elements of different types */
+	jsbArray, /* varying length array of elements of the same type */
+	jsbEnd,   /* end of object/array indicator */
 } JsonbSchemaTag;
 
 /* Store array/string length as 1/3/5 bytes */
