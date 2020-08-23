@@ -100,7 +100,7 @@ jsonb_append_value(StringInfo schema, StringInfo data, JsonbValue* v)
 	  {
 		  char* num_str = DatumGetCString(DirectFunctionCall1(numeric_out,
 															  PointerGetDatum(v->val.numeric)));
-		  size_t num_str_len = strlen(num_str) + 1; /* include '\0' character */
+		  size_t num_str_len = strlen(num_str);
 		  appendStringInfoCharMacro(schema, jsbNumeric);
 		  jsonb_encode_length(data, num_str_len);
 		  appendBinaryStringInfo(data, num_str, num_str_len);
@@ -109,7 +109,7 @@ jsonb_append_value(StringInfo schema, StringInfo data, JsonbValue* v)
 	  }
 	  case jbvBool:
 	    appendStringInfoCharMacro(schema, jsbBool);
-	    appendStringInfoCharMacro(data, (char)v->val.boolean);
+	    appendStringInfoCharMacro(data, v->val.boolean ? 't' : 'f');
 		break;
 	  default:
 	    Assert(false);
@@ -236,11 +236,16 @@ jsonb_add_schema_recursive(JsonbParseState **state, JsonbIteratorToken token, ch
 	JsonbValue v;
 	int len;
 	char* arraySchema;
+	char* numstr;
 
 	switch (*(*schema)++)
 	{
 	  case jsbNull:
 		v.type = jbvNull;
+		return pushJsonbValue(state, token, &v);
+	  case jsbBool:
+		v.type = jbvBool;
+		v.val.boolean = *(*schema)++ == 't';
 		return pushJsonbValue(state, token, &v);
 	  case jsbTuple:
 		len = jsonb_decode_length(data);
@@ -286,12 +291,16 @@ jsonb_add_schema_recursive(JsonbParseState **state, JsonbIteratorToken token, ch
 		*data += v.val.string.len;
 		return pushJsonbValue(state, token, &v);
 	  case jsbNumeric:
-		len = jsonb_decode_length(data); /* including '\0' character */
+		len = jsonb_decode_length(data);
+		numstr = (char*)palloc(len+1);
+		memcpy(numstr, *data, len);
+		numstr[len] = '\0';
 		v.type = jbvNumeric;
 		v.val.numeric = DatumGetNumeric(DirectFunctionCall3(numeric_in,
-															CStringGetDatum(*data),
+															CStringGetDatum(numstr),
 															ObjectIdGetDatum(InvalidOid),
 															Int32GetDatum(-1)));
+		pfree(numstr);
 		*data += len;
 		return pushJsonbValue(state, token, &v);
 	  default:
