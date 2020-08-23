@@ -236,7 +236,7 @@ jsonb_add_schema_recursive(JsonbParseState **state, JsonbIteratorToken token, ch
 	JsonbValue v;
 	int len;
 	char* arraySchema;
-	char* numstr;
+	char* num_str;
 
 	switch (*(*schema)++)
 	{
@@ -245,7 +245,7 @@ jsonb_add_schema_recursive(JsonbParseState **state, JsonbIteratorToken token, ch
 		return pushJsonbValue(state, token, &v);
 	  case jsbBool:
 		v.type = jbvBool;
-		v.val.boolean = *(*schema)++ == 't';
+		v.val.boolean = *(*data)++ == 't';
 		return pushJsonbValue(state, token, &v);
 	  case jsbTuple:
 		len = jsonb_decode_length(data);
@@ -292,15 +292,15 @@ jsonb_add_schema_recursive(JsonbParseState **state, JsonbIteratorToken token, ch
 		return pushJsonbValue(state, token, &v);
 	  case jsbNumeric:
 		len = jsonb_decode_length(data);
-		numstr = (char*)palloc(len+1);
-		memcpy(numstr, *data, len);
-		numstr[len] = '\0';
+		num_str = (char*)palloc(len+1);
+		memcpy(num_str, *data, len);
+		num_str[len] = '\0';
 		v.type = jbvNumeric;
 		v.val.numeric = DatumGetNumeric(DirectFunctionCall3(numeric_in,
-															CStringGetDatum(numstr),
+															CStringGetDatum(num_str),
 															ObjectIdGetDatum(InvalidOid),
 															Int32GetDatum(-1)));
-		pfree(numstr);
+		pfree(num_str);
 		*data += len;
 		return pushJsonbValue(state, token, &v);
 	  default:
