@@ -1,0 +1,4 @@
+comment = 'jsonb with separately stored schema'
+default_version = '1.0'
+module_pathname = '$libdir/jsonb_schema'
+relocatable = true
