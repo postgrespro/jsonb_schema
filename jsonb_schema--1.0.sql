@@ -4,7 +4,6 @@
 \echo Use "create extension jsonb_schema" to load this file. \quit
 
 create table jsonb_schemes(id serial, schema bytea);
--- create unique index on jsonb_schemes using hash(schema);
 create unique index on jsonb_schemes(schema) include(id);
 create unique index on jsonb_schemes(id) include(schema);
 
@@ -22,9 +21,9 @@ begin
 	with ins as (insert into jsonb_schemes (schema) values (obj_schema) on conflict(schema) do nothing returning id) select coalesce((select id from ins),(select id from jsonb_schemes where schema=obj_schema)) into schema_id;
 	return jsonb_build_array(schema_id,encode(obj_data, 'escape'));
 end;
-$$ language plpgsql strict;
+$$ language plpgsql strict parallel safe;
 
 create function jsonb_unpack(obj jsonb) returns jsonb as $$
 	select jsonb_add_schema(schema,decode(obj->>1, 'escape')) from jsonb_schemes where id=(obj->>0)::integer;
-$$ language sql strict;
+$$ language sql strict parallel safe;
 

@@ -15,7 +15,7 @@ PG_FUNCTION_INFO_V1(jsonb_extract_schema);
 PG_FUNCTION_INFO_V1(jsonb_add_schema);
 
 typedef  enum {
-	jsbNull,
+	jsbNull = 1, /*  avoid '\0' character */
 	jsbObject,
 	jsbString,
 	jsbNumeric,
